@@ -1,9 +1,10 @@
 # Uncomment this to pass the first stage
-import os
 import socket
 import sys
 import threading
 from pathlib import Path
+
+# TODO: Clean up and modularize code.
 
 
 def create_http_response(status, content_type, content):
@@ -13,10 +14,12 @@ def create_http_response(status, content_type, content):
     response = f"{headers}\r\n{content}\r\n"
     return response
 
+
 def not_found_response():
     response_status = "404 Not Found"
     headers = f"HTTP/1.1 {response_status}\r\n\r\n"
     return headers
+
 
 def handle_client_connection(acc_socket, _acc_addr_info, directory_name):
     request = acc_socket.recv(1024)
