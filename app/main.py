@@ -20,8 +20,9 @@ def not_found_response():
 
 def handle_client_connection(acc_socket, _acc_addr_info, directory_name):
     request = acc_socket.recv(1024)
-    lines = request.decode().split("\r\n")
-    method, path, protocol = lines[0].split(" ")
+    headers, body = request.decode().split("\r\n\r\n")
+    headers_lines = headers.split("\r\n")
+    method, path, protocol = headers_lines[0].split(" ")
     if path == "/":
         response_status = "200 OK"
         headers = f"HTTP/1.1 {response_status}\r\n\r\n"
@@ -31,19 +32,29 @@ def handle_client_connection(acc_socket, _acc_addr_info, directory_name):
         response = create_http_response("200 OK", "text/plain", path_parts[1])
     elif path.startswith("/user-agent"):
         agent = None
-        for line in lines:
+        for line in headers_lines:
             if line.startswith("User-Agent:"):
                 agent = line.removeprefix("User-Agent: ")
                 break
         response = create_http_response("200 OK", "text/plain", agent)
-    elif path.startswith("/files/"):
+    elif method == "GET" and path.startswith("/files/"):
         filename = path.removeprefix("/files/")
         if directory_name and Path(directory_name).is_dir() and Path(f"{directory_name}/{filename}").is_file():
-            file = Path(f"{directory_name}/{filename}")
-            with open(file, 'r') as content:
-                response = create_http_response("200 OK", "application/octet-stream", content.read())
+            file_path = Path(f"{directory_name}/{filename}")
+            with open(file_path, 'r') as file:
+                response = create_http_response("200 OK", "application/octet-stream", file.read())
         else:
             response = not_found_response()
+    elif method == "POST" and path.startswith("/files/"):
+        filename = path.removeprefix("/files/")
+        if not Path(f"{directory_name}").exists():
+            Path(f"{directory_name}").mkdir()
+        file_path = Path(f"{directory_name}/{filename}")
+        with open(file_path, 'w') as file:
+            file.write(body)
+        response_status = "201 OK"
+        headers = f"HTTP/1.1 {response_status}\r\n\r\n"
+        response = headers
     else:
         response = not_found_response()
     acc_socket.send(response.encode())
