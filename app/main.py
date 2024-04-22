@@ -2,6 +2,13 @@
 import socket
 
 
+def create_http_response(status, content):
+    headers = (f"HTTP/1.1 {status}\r\n"
+               f"Content-Type: text/plain\r\n"
+               f"Content-Length: {len(content)}\r\n")
+    response = f"{headers}\r\n{content}\r\n"
+    return response
+
 def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!")
@@ -20,11 +27,14 @@ def main():
         response = headers
     elif path.startswith("/echo"):
         path_parts = path.split("/echo/")
-        response_status = "200 OK"
-        response_content = path_parts[1]
-        headers = (f"HTTP/1.1 {response_status}\r\n"
-                   f"Content-Type: text/plain\r\nContent-Length: {len(response_content)}\r\n")
-        response = f"{headers}\r\n{response_content}\r\n"
+        response = create_http_response("200 OK", path_parts[1])
+    elif path.startswith("/user-agent"):
+        agent = None
+        for line in lines:
+            if line.startswith("User-Agent:"):
+                agent = line.removeprefix("User-Agent: ")
+                break
+        response = create_http_response("200 OK", agent)
     else:
         response_status = "404 Not Found"
         headers = f"HTTP/1.1 {response_status}\r\n\r\n"
