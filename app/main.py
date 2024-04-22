@@ -1,6 +1,6 @@
 # Uncomment this to pass the first stage
 import socket
-import signal
+import asyncio
 import sys
 
 
@@ -12,7 +12,13 @@ def create_http_response(status, content):
     return response
 
 
-def main():
+async def get_client_connection(server_socket):
+    acc_socket, addr_info = server_socket.accept()
+    return acc_socket
+
+
+
+async def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!")
 
@@ -22,7 +28,7 @@ def main():
     try:
         while True:
 
-            acc_socket, addr_info = server_socket.accept()  # wait for client
+            acc_socket = await get_client_connection(server_socket)
 
             request = acc_socket.recv(1024)
             lines = request.decode().split("\r\n")
@@ -53,4 +59,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
