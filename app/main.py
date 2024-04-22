@@ -19,9 +19,9 @@ def main():
         headers = f"HTTP/1.1 {response_status}\r\n\r\n"
         response = headers
     elif path.startswith("/echo"):
-        _, _, random_str = path.split("/")
+        path_parts = path.split("/echo/")
         response_status = "200 OK"
-        response_content = random_str
+        response_content = path_parts[1]
         headers = (f"HTTP/1.1 {response_status}\r\n"
                    f"Content-Type: text/plain\r\nContent-Length: {len(response_content)}\r\n")
         response = f"{headers}\r\n{response_content}\r\n"
