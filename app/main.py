@@ -10,7 +10,15 @@ def main():
     #
     server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
     acc_socket, addr_info = server_socket.accept() # wait for client
-    acc_socket.send("HTTP/1.1 200 OK\r\n\r\n".encode())
+
+    request = acc_socket.recv(1024)
+    lines = request.decode().split("\r\n")
+    method, path, protocol = lines[0].split(" ")
+    if path == "/":
+        response_status = "200 OK"
+    else:
+        response_status = "404 Not Found"
+    acc_socket.send(f"HTTP/1.1 {response_status}\r\n\r\n".encode())
     acc_socket.close()
     server_socket.close()
 
