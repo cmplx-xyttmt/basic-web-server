@@ -1,7 +1,7 @@
 # Uncomment this to pass the first stage
 import socket
-import asyncio
 import sys
+import threading
 
 
 def create_http_response(status, content):
@@ -12,15 +12,9 @@ def create_http_response(status, content):
     return response
 
 
-async def get_client_connection(server_socket):
-    acc_socket, addr_info = server_socket.accept()
-    return acc_socket
-
-
-
-async def main():
+def main(index):
     # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!")
+    print(f"Logs from your program will appear here! Thread {index}.")
 
     # Uncomment this to pass the first stage
     #
@@ -28,9 +22,10 @@ async def main():
     try:
         while True:
 
-            acc_socket = await get_client_connection(server_socket)
+            acc_socket, addr_info = server_socket.accept()  # wait for client
 
             request = acc_socket.recv(1024)
+            print(f"Request being served by thread {index}.")
             lines = request.decode().split("\r\n")
             method, path, protocol = lines[0].split(" ")
             if path == "/":
@@ -59,4 +54,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # create 3 threads
+    for index in range(3):
+        x = threading.Thread(target=main, args=(index,))
+        x.start()
